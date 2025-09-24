@@ -1,0 +1,41 @@
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.env.*
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+build/
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# dbt
+target/
+logs/
+dbt_packages/
+
+# Dados locais
+data/
+lake/
+*.parquet
+*.csv
+
+# Docker
+docker-compose.override.yml
+
+# Misc
+*.sqlite
