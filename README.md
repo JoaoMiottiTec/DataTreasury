@@ -15,15 +15,6 @@
 DataTreasury is a modular financial data platform that consolidates macroeconomic and market information into structured layers (Bronze → Silver → Gold).
 The MVP focuses on building the first ingestion pipeline, fully automated via Prefect 3.x.
 
-```mermaid
-graph TD
-  A[BCB] --> B[Ingestors (Python)]
-  B --> C[Bronze Layer - raw_macro_daily]
-  C --> D[Prefect Flow (ingest_bcb_flow)]
-  D --> E[Daily Schedule (08:00 BRT)]
-  E --> F[Data Warehouse (Postgres)]
-```
-
 ---
 
 ## 2. Project Structure
