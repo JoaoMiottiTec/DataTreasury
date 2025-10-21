@@ -54,6 +54,8 @@ def fetch_series(series_id: int, data_inicial: dt.date = None, data_final: dt.da
     params["dataFinal"] = f"{data_final.day:02d}/{data_final.month:02d}/{data_final.year}"
 
     resp = requests.get(url, params=params, timeout=30)
+    if resp.status_code == 404:
+        return []
     resp.raise_for_status()
     return resp.json()
 
@@ -94,6 +96,7 @@ def upsert_records(source_name: str, records: list[dict]):
 def run():
     today = dt.date.today()
     ten_years_ago = today.replace(year=today.year - 10)
+    end = today - dt.timedelta(days=1)
 
     for source_name, sgs_id in SERIES.items():
         last = get_last_ingested_date(source_name)

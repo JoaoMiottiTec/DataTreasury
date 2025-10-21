@@ -12,8 +12,8 @@ def  t_upsert_records(source_name: str, records: list[dict]):
 @flow(name="BCB Ingestion Flow")
 def ingest_bcb_flow():
     for source_name, sgs_id in SERIES.items():
-        data= t_fetch_series.submit(sgs_id)
-        t_upsert_records.submit(source_name, data)
+        data= t_fetch_series(sgs_id)
+        t_upsert_records(source_name, data)
 
 if __name__=="__main__":
     ingest_bcb_flow()
