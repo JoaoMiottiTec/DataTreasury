@@ -2,6 +2,10 @@ import os, json, datetime as dt
 import requests
 from psycopg_pool import ConnectionPool
 from dotenv import load_dotenv
+import time
+import logging
+
+log = logging.getLogger(__name__)
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -26,7 +30,7 @@ def parse_brazilian_date(d: str) -> dt.date:
 
 def parse_value_br(v: str):
     try:
-        return float(v.replace(",", "."))
+        return float(v.replace(".", "").replace(",", "."))
     except Exception:
         return None
 
@@ -39,25 +43,34 @@ def get_last_ingested_date(source_name: str):
             row = cur.fetchone()
             return row[0] if row and row[0] else None
 
-def fetch_series(series_id: int, data_inicial: dt.date = None, data_final: dt.date = None):
+def fetch_series(series_id: int, data_inicial: dt.date = None, data_final: dt.date = None, retries: int = 3, backoff: float = 1.5, timeout: int= 15):
     url = f"{BCB_BASE}/bcdata.sgs.{series_id}/dados"
     params = {"formato": "json"}
 
     today = dt.date.today()
     if not data_final:
         data_final = today
-
     if not data_inicial:
         data_inicial = today.replace(year=today.year - 10)
 
     params["dataInicial"] = f"{data_inicial.day:02d}/{data_inicial.month:02d}/{data_inicial.year}"
     params["dataFinal"] = f"{data_final.day:02d}/{data_final.month:02d}/{data_final.year}"
 
-    resp = requests.get(url, params=params, timeout=30)
-    if resp.status_code == 404:
-        return []
-    resp.raise_for_status()
-    return resp.json()
+    for attempt in range(1, retries + 1):
+        try:
+            resp = requests.get(url, params=params, timeout=timeout)
+            if resp.status_code == 200:
+                return  resp.json()
+            if resp.status_code == 404:
+                raise ValueError(f"SGS series {series_id} not found (404). Cheque o SID.")
+            log.warning("BCB SGS HTTP %s (tentativa %s/%s) - url=%s params=%s",
+                                        resp.status_code, attempt, retries, url, params)
+        except (requests.Timeout, requests.ConnectionError) as e:
+            log.warning("BCB SGS erro de rede (%s) tentativa %s/%s", e, attempt, retries)
+
+        time.sleep(backoff ** attempt)
+
+    raise RuntimeError(f"Falha ao buscar série {series_id} após {retries} tentativas.")
 
 UPSERT_SQL = """
 insert into bronze.raw_macro_daily (source, date, value, raw)
@@ -96,7 +109,6 @@ def upsert_records(source_name: str, records: list[dict]):
 def run():
     today = dt.date.today()
     ten_years_ago = today.replace(year=today.year - 10)
-    end = today - dt.timedelta(days=1)
 
     for source_name, sgs_id in SERIES.items():
         last = get_last_ingested_date(source_name)
@@ -104,10 +116,11 @@ def run():
             start = max(last + dt.timedelta(days=1), ten_years_ago)
         else:
             start = ten_years_ago
-        end = today
+
+        end = today - dt.timedelta(days=1)
 
         if start > end:
-            print(f"[SKIP] {source_name}: nada para buscar.")
+            print(f"[SKIP] {source_name}: nada para buscar (start={start} > end={end}).")
             continue
 
         data = fetch_series(sgs_id, start, end)
