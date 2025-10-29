@@ -16,7 +16,7 @@ pool = ConnectionPool(conninfo=DATABASE_URL, min_size=1, max_size=4, timeout=10)
 
 BCB_BASE = 'https://api.bcb.gov.br/dados/serie'
 SERIES = {
-    "bcb_selic": 11,  # DAY
+    "bcb_selic": 432,  # DAY
     # "bcb_ipca": 433,  # MONTH
     # "bcb_usdbrl": 1,  # DAY
 }
@@ -34,7 +34,13 @@ def parse_value_br(v: str):
     except Exception:
         return None
 
-GET_LAST_DATE_SQL = "select max(date) from bronze.raw_macro_daily where source = %s;"
+GET_LAST_DATE_SQL = """
+select date
+from bronze.raw_macro_daily
+where source = %s
+order by date desc
+limit 1;
+"""
 
 def get_last_ingested_date(source_name: str):
     with pool.connection() as conn:
@@ -125,7 +131,7 @@ def run():
 
         data = fetch_series(sgs_id, start, end)
         upsert_records(source_name, data)
-        print(f"[OK] {source_name}: Ingestion successfull")
+        print(f"[OK] {source_name}: {len(data)} linhas ({start}..{end})")
 
 if __name__=="__main__":
     run()
