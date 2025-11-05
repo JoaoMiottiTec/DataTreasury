@@ -17,5 +17,29 @@ services:
     image: adminer:4
     ports: ["8081:8080"]
     depends_on: [postgres]
+  prefect-server:
+    image: prefecthq/prefect:2-python3.11
+    command: ["prefect", "server", "start", "--host", "0.0.0.0"]
+    ports:
+      - "4200:4200"
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///prefect.db"
+    volumes:
+      - prefect_data:/root/.prefect
+
+  prefect-worker:
+    image: prefecthq/prefect:2-python3.11
+    depends_on: [prefect-server]
+    environment:
+      PREFECT_API_URL: "http://prefect-server:4200/api"
+      PREFECT_LOGGING_LEVEL: "INFO"
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/datatreasury}
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: >
+      sh -lc "pip install -r /app/requirements.txt && prefect worker start -q datatreasury"
+
 volumes:
   pgdata:
+  prefect_data:
