@@ -7,7 +7,7 @@ DB_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/datatreasu
 echo "[migrate] Applying 0001_init.sql..."
 psql "$DB_URL" -f warehouse/migrations/0001_init.sql
 
-echo "[migrate] Applying 0002_init.sql..."
-psql "$DB_URL" -f warehouse/migrations/0002_init.sql
+echo "[migrate] Applying 0002_add_indexes.sql..."
+psql "$DB_URL" -f warehouse/migrations/0002_add_indexes.sql
 
 echo "[migrate] Done"

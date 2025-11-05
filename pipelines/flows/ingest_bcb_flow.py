@@ -1,3 +1,4 @@
+from typing import Optional
 from prefect import flow, task
 import datetime as dt
 from pipelines.ingestors.ingest_bcb import fetch_series, get_last_ingested_date, upsert_records, SERIES
@@ -26,7 +27,7 @@ def  t_upsert_records(source_name: str, records: list[dict]):
     upsert_records(source_name, records)
 
 @flow(name="BCB Ingestion Flow")
-def ingest_bcb_flow(days_back: int = None, full_refresh: bool = False):
+def ingest_bcb_flow(days_back: Optional[int] = None, full_refresh: bool = False):
     for source_name, sgs_id in SERIES.items():
         data = t_fetch_series.with_options(name=f"fetch_{source_name}")(
             source_name, sgs_id
