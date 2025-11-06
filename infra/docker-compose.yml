@@ -26,19 +26,19 @@ services:
       PREFECT_API_DATABASE_CONNECTION_URL: "sqlite+aiosqlite:///prefect.db"
     volumes:
       - prefect_data:/root/.prefect
-
   prefect-worker:
     image: prefecthq/prefect:2-python3.11
-    depends_on: [prefect-server]
+    depends_on: [prefect-server, postgres]
     environment:
       PREFECT_API_URL: "http://prefect-server:4200/api"
       PREFECT_LOGGING_LEVEL: "INFO"
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/datatreasury}
-    volumes:
-      - ./:/app
     working_dir: /app
-    command: >
-      sh -lc "pip install -r /app/requirements.txt && prefect worker start -q datatreasury"
+    volumes:
+      - ..:/app
+    command: ["/app/ops/entrypoint.sh"]
+    restart: unless-stopped
+
 
 volumes:
   pgdata:
