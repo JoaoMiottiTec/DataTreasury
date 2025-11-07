@@ -10,13 +10,13 @@ def run_sql_with_runner(sql_path: str) -> None:
     logger = get_run_logger()
     path = Path(sql_path)
     if not path.exists():
-        raise FileNotFoundError(f"SQL não encontrado: {path}")
+        raise FileNotFoundError(f"SQL file not found: {path}")
 
     cmd = ["python", "ops/sql_runner.py", str(path)]
-    logger.info(f"Executando: {' '.join(cmd)}")
+    logger.info(f"Running: {' '.join(cmd)}")
 
     subprocess.run(cmd, check=True)
-    logger.info(f"✅ OK: {path.name}")
+    logger.info(f" Done: {path.name}")
 
 
 @flow(name="gold_update_flow")
@@ -27,9 +27,9 @@ def gold_update_flow(
     ),
 ):
     logger = get_run_logger()
-    logger.info("Iniciando atualização do GOLD...")
+    logger.info("Starting GOLD update...")
 
     for sql in sql_files:
         run_sql_with_runner.submit(sql)
 
-    logger.info("Flow GOLD finalizado.")
+    logger.info("GOLD flow completed.")
