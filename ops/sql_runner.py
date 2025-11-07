@@ -20,10 +20,10 @@ def run_sql_file(sql_path: str) -> None:
     print(f"[sql-runner] Conectando em {db_url!r}")
     with psycopg.connect(db_url) as conn:
         with conn.cursor() as cur:
-            print(f"[sql-runner] Executando {path.name} ({len(sql_text)} bytes)")
+            print(f"[sql-runner] Exec {path.name} ({len(sql_text)} bytes)")
             cur.execute(sql_text)
         conn.commit()
-    print("[sql-runner] ✅ OK")
+    print("[sql-runner]  OK")
 
 def main(argv: list[str]) -> None:
     if len(argv) < 2:
@@ -34,7 +34,7 @@ def main(argv: list[str]) -> None:
     try:
         run_sql_file(sql_path)
     except Exception as e:
-                print(f"[sql-runner] ❌ ERRO: {e}")
+                print(f"[sql-runner]  Error: {e}")
                 sys.exit(1)
 
 
