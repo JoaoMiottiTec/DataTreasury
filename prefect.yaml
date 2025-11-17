@@ -36,3 +36,19 @@ deployments:
     timezone: UTC
     day_or: true
     active: true
+- name: daily_pipeline
+  version:
+  tags: []
+  concurrency_limit:
+  description:
+  entrypoint: pipelines/flows/datatreasury_daily_flow.py:datatreasury_daily_flow
+  parameters: {}
+  work_pool:
+    name: gold-pool
+    work_queue_name:
+    job_variables: {}
+  schedules:
+  - cron: 0 0 * * *
+    timezone: UTC
+    day_or: true
+    active: true
