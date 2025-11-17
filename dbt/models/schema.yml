@@ -1,8 +1,15 @@
 version: 2
 
+sources:
+  - name: silver
+    schema: silver
+    tables:
+      - name: stg_macro_daily
+      - name: stg_quotes_daily
+
 models:
   - name: mart_macro_daily
-    description: "Daily macroeconomic indicators (SELIC, IPCA, USDBRL) in gold layer."
+    description: "Daily macro indicators (SELIC, IPCA, USDBRL) in the gold layer."
     columns:
       - name: date
         description: "Reference date."
@@ -11,10 +18,10 @@ models:
           - unique
 
   - name: mart_prices_daily
-    description: "Daily asset prices (e.g. crypto, FX) in gold layer."
+    description: "Daily asset prices (e.g. crypto, FX) in the gold layer."
     columns:
       - name: symbol
-        description: "Asset symbol, e.g., BTC, ETH, USDBRL."
+        description: "Asset symbol (e.g. BTC, ETH, USDBRL)."
         tests:
           - not_null
       - name: date

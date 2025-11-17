@@ -1,35 +1,65 @@
 from pathlib import Path
 import subprocess
-from typing import Sequence
 
 from prefect import flow, task, get_run_logger
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DBT_DIR = PROJECT_ROOT / "dbt"
+
 
 @task
-def run_sql_with_runner(sql_path: str) -> None:
+def run_dbt():
     logger = get_run_logger()
-    path = Path(sql_path)
-    if not path.exists():
-        raise FileNotFoundError(f"SQL file not found: {path}")
+    logger.info("Running `dbt run`...")
+    result = subprocess.run(
+        ["dbt", "run"],
+        cwd=DBT_DIR,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
-    cmd = ["python", "ops/sql_runner.py", str(path)]
-    logger.info(f"Running: {' '.join(cmd)}")
+    logger.info(result.stdout)
+    if result.returncode != 0:
+        logger.error(result.stderr)
+        raise RuntimeError(f"dbt run failed with code {result.returncode}")
 
-    subprocess.run(cmd, check=True)
-    logger.info(f" Done: {path.name}")
+    return result.stdout
+
+
+@task
+def test_dbt():
+    logger = get_run_logger()
+    logger.info("Running `dbt test`...")
+    result = subprocess.run(
+        ["dbt", "test"],
+        cwd=DBT_DIR,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    logger.info(result.stdout)
+    if result.returncode != 0:
+        logger.error(result.stderr)
+        raise RuntimeError(f"dbt test failed with code {result.returncode}")
+
+    return result.stdout
 
 
 @flow(name="gold_update_flow")
-def gold_update_flow(
-    sql_files: Sequence[str] = (
-        "warehouse/migrations/0004_gold_populate.sql",
-        "warehouse/migrations/0005_gold_views.sql",
-    ),
-):
+def gold_update_flow():
     logger = get_run_logger()
-    logger.info("Starting GOLD update...")
+    logger.info("Starting GOLD update with dbt...")
 
-    for sql in sql_files:
-        run_sql_with_runner.submit(sql)
+    run_dbt_result = run_dbt()
+    test_dbt_result = test_dbt()
 
-    logger.info("GOLD flow completed.")
+    logger.info("GOLD flow (dbt) completed.")
+    return {
+        "dbt_run": run_dbt_result[-500:],
+        "dbt_test": test_dbt_result[-500:],
+    }
+
+if __name__ == "__main__":
+    gold_update_flow()
