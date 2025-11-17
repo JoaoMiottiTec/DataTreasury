@@ -1,0 +1,19 @@
+name: datatreasury_dbt
+version: "1.0"
+profile: datatreasury
+
+model-paths: ['models']
+target-path: 'target'
+log-path: 'logs'
+
+models:
+  datatreasury_dbt:
+    +materialized: table
+
+    silver:
+      +schema: silver
+      +materialized: view
+
+    gold:
+      +schema: gold
+      +materialized: table
