@@ -117,18 +117,15 @@ prefect deployment run "BCB Ingestion Flow/BCB Daily"
 | -------------------------- | ------------------------------------------- | ------ |
 | 1. Basic Infrastructure    | PostgreSQL setup and initial migration      | ✅      |
 | 2. BCB Ingestion           | SELIC (SGS 11) via Prefect                  | ✅      |
-| 3. CoinGecko Ingestion     | Cryptocurrency data (BTC, ETH)              | ⏳      |
-| 4. Transformations (dbt)   | Staging and marts (Silver/Gold)             | ✅      |
-| 5. Financial API (Node/TS) | REST endpoints for querying series          | ⏳      |
-| 6. Observability           | Prefect Server, logs, and metrics (Grafana) | ⏳      |
-| 7. Portfolio/Demo          | Documentation and public dashboard          | ⏳      |
+| 3. Transformations (dbt)   | Staging and marts (Silver/Gold)             | ✅      |
+| 4. Financial API (Node/TS) | REST endpoints for querying series          | ⏳      |
+| 5. Observability           | Prefect Server, logs, and metrics (Grafana) | ⏳      |
+| 6. Portfolio/Demo          | Documentation and public dashboard          | ⏳      |
 
 ---
 
 ## 5. Next Steps
 
-* Add Docker Compose with Prefect Server + Worker + Postgres
-* Implement CoinGecko and Yahoo Finance
 * Build Silver models using dbt
 * Develop Node.js API for financial queries
 * Deploy a demo and public dashboard
